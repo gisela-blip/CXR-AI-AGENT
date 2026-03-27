@@ -1,0 +1,43 @@
+# ============================================================
+# Medical X-Ray AI Chatbot — Requirements
+# Model: Gisela13154/medgemma-4b-it-sft-lora-ms-cxr-evaluation
+# ============================================================
+# Install all dependencies with:
+#   py -3 -m pip install -r requirements.txt
+#
+# For GPU support (recommended):
+#   py -3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+#
+# For CPU-only (slower but works without a GPU):
+#   py -3 -m pip install torch torchvision torchaudio
+# ============================================================
+
+# --- Core ML / LLM ---
+transformers>=4.40.0           # HuggingFace model loading (MedGemma)
+accelerate>=0.29.0             # Efficient model loading across devices
+bitsandbytes>=0.43.0           # 4-bit quantization (reduces VRAM to ~6GB)
+peft>=0.10.0                   # Parameter-efficient fine-tuning support
+
+# --- Image Processing ---
+Pillow>=10.0.0                 # Image loading and preprocessing
+torchvision>=0.17.0            # Vision transforms for MedGemma processor
+
+# --- RAG / Vector Store ---
+faiss-cpu>=1.8.0               # FAISS vector database (CPU version)
+sentence-transformers>=2.7.0   # Sentence embeddings for RAG retrieval
+
+# --- Translation ---
+sentencepiece>=0.1.99          # Tokenizer required by Helsinki-NLP models
+sacremoses>=0.1.1              # Tokenizer pre/post-processing for MarianMT
+
+# --- Data Handling ---
+pandas>=2.0.0                  # Reading PPK COMPILE.xlsx
+openpyxl>=3.1.0                # Excel file parsing engine for pandas
+numpy>=1.26.0                  # Numerical operations
+
+# --- Web UI ---
+gradio>=4.28.0                 # Chatbot web interface
+
+# --- Utilities ---
+huggingface-hub>=0.22.0        # Download models from HuggingFace Hub
+tqdm>=4.66.0                   # Progress bars during model download
