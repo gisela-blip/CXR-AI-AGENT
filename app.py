@@ -232,6 +232,27 @@ def translate_to_id(text: str) -> str:
     return "\n".join(translated)
 
 
+def is_present(text: str, keyword: str) -> bool:
+    """Check if keyword exists in text without being negated nearby."""
+    import re
+    matches = [m.start() for m in re.finditer(re.escape(keyword), text)]
+    if not matches:
+        return False
+        
+    negation_words = ["no ", "without ", "absence of ", "negative for ", "clear of ", "free of ", "not ", "unremarkable"]
+    
+    # Check if ANY occurrence is NOT negated in a 40-char window preceding it
+    for start_idx in matches:
+        window = text[max(0, start_idx - 40):start_idx]
+        is_negated = False
+        for neg in negation_words:
+            if neg in window:
+                is_negated = True
+                break
+        if not is_negated:
+            return True
+    return False
+
 def rag_retrieve(query: str, threshold: float = 0.20) -> list[dict]:
     """Search for the exact disease keywords first to avoid semantic blending (like pneumonia + effusion = pleuropneumonia)."""
     if embed_model is None or faiss_index is None:
@@ -239,31 +260,20 @@ def rag_retrieve(query: str, threshold: float = 0.20) -> list[dict]:
 
     lower_q = query.lower()
     
-    # -- 1. Explicit Keyword Mapping --
-    # Map English clinical findings directly to their Indonesian PPK Disease counterparts
-    keyword_map = {
-        "pneumothorax": "Pneumotoraks",
-        "atelectasis": "Atelektasis",
-        "pleuropneumonia": "Pleuropneumonia",
-        "pleural effusion": "Efusi Pleura",
-        "pneumonia": "Pneumonia",
-        "consolidation": "Konsolidasi",
-    }
-    
     found_diseases = set()
     
-    # Carefully check for exact keywords (prioritize complex phrases)
-    if "pleuropneumonia" in lower_q:
+    # Carefully check for exact keywords (prioritize complex phrases) securely
+    if is_present(lower_q, "pleuropneumonia"):
         found_diseases.add("Pleuropneumonia")
     else:
-        if "pneumonia" in lower_q:
+        if is_present(lower_q, "pneumonia"):
             found_diseases.add("Pneumonia")
-        if "pleural effusion" in lower_q:
+        if is_present(lower_q, "pleural effusion"):
             found_diseases.add("Efusi Pleura")
             
-    if "pneumothorax" in lower_q: found_diseases.add("Pneumotoraks")
-    if "atelectasis" in lower_q: found_diseases.add("Atelektasis")
-    if "consolidation" in lower_q: found_diseases.add("Konsolidasi")
+    if is_present(lower_q, "pneumothorax"): found_diseases.add("Pneumotoraks")
+    if is_present(lower_q, "atelectasis"): found_diseases.add("Atelektasis")
+    if is_present(lower_q, "consolidation"): found_diseases.add("Konsolidasi")
 
     results = []
     
